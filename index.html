@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi Hukum Archimedes Interaktif</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00d2ff;
+            --secondary: #3a7bd5;
+            --dark: #0f2027;
+            --glass: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text: #ffffff;
+            --danger: #ff4b4b;
+            --success: #00e676;
+            --warning: #ffea00;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Background Bubbles */
+        .bubble {
+            position: absolute;
+            bottom: -100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: rise 10s infinite ease-in;
+            z-index: 0;
+        }
+        @keyframes rise {
+            0% { bottom: -100px; transform: translateX(0); }
+            50% { transform: translateX(100px); }
+            100% { bottom: 1080px; transform: translateX(-200px); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        header p { color: #a0aec0; font-size: 1rem; }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Glassmorphism Card */
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* Simulation Tank */
+        .tank-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .tank {
+            width: 100%;
+            max-width: 350px;
+            height: 400px;
+            background: rgba(0, 150, 255, 0.2);
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: none;
+            border-radius: 0 0 20px 20px;
+            position: relative;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        .water {
+            position: absolute;
+            top: 50px; /* Water level */
+            left: 0;
+            width: 100%;
+            height: calc(100% - 50px);
+            background: linear-gradient(to bottom, rgba(0, 180, 255, 0.4), rgba(0, 80, 200, 0.6));
+            transition: all 0.5s ease;
+        }
+        .water::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 0;
+            width: 200%;
+            height: 20px;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" fill="%2300d2ff"/><path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" fill="%2300d2ff"/><path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" fill="%2300d2ff"/></svg>') repeat-x;
+            animation: wave 10s linear infinite;
+        }
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .object {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ff9966, #ff5e62);
+            border: 2px solid rgba(255,255,255,0.5);
+            border-radius: 10px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 20px;
+            transition: bottom 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+        .object::after {
+            content: 'Benda';
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* Controls */
+        .control-group { margin-bottom: 25px; }
+        .control-group label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .control-group label span { color: var(--primary); }
+        
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 0 10px var(--primary);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+        }
+
+        /* Stats Panel */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-box {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .stat-box h3 { font-size: 0.8rem; color: #a0aec0; margin-bottom: 5px; }
+        .stat-box p { font-size: 1.2rem; font-weight: 700; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+        .status-tenggelam { background: var(--danger); color: white; box-shadow: 0 0 15px var(--danger); }
+        .status-melayang { background: var(--warning); color: #000; box-shadow: 0 0 15px var(--warning); }
+        .status-mengapung { background: var(--success); color: #000; box-shadow: 0 0 15px var(--success); }
+
+        /* Theory Section */
+        .theory { margin-top: 30px; }
+        .theory h2 { margin-bottom: 15px; color: var(--primary); }
+        .formula {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            border-left: 4px solid var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Bubbles Background -->
+    <div id="bubbles"></div>
+
+    <div class="container">
+        <header>
+            <h1>Simulasi Hukum Archimedes</h1>
+            <p>Geser slider untuk melihat bagaimana massa jenis mempengaruhi gaya apung!</p>
+        </header>
+
+        <div class="main-grid">
+            <!-- Left: Simulation -->
+            <div class="card tank-container">
+                <div class="tank">
+                    <div class="water"></div>
+                    <div class="object" id="object"></div>
+                </div>
+                <div id="statusBadge" class="status-badge status-mengapung">MENGAPUNG</div>
+            </div>
+
+            <!-- Right: Controls & Stats -->
+            <div class="card">
+                <div class="control-group">
+                    <label>Massa Jenis Benda ($\rho_b$) <span id="rhoB-val">500 kg/m³</span></label>
+                    <input type="range" id="rhoB" min="100" max="3000" value="500" step="50">
+                </div>
+                
+                <div class="control-group">
+                    <label>Massa Jenis Fluida ($\rho_f$) <span id="rhoF-val">1000 kg/m³</span></label>
+                    <input type="range" id="rhoF" min="100" max="3000" value="1000" step="50">
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <h3>Berat Benda (W)</h3>
+                        <p id="weight-val">4900 N</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Gaya Apung (F<sub>a</sub>)</h3>
+                        <p id="buoyancy-val">9800 N</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Volume Benda (V)</h3>
+                        <p>1 m³</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Gravitasi (g)</h3>
+                        <p>9.8 m/s²</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card theory">
+            <h2>📚 Konsep Dasar</h2>
+            <p>"Sebuah benda yang dicelupkan sebagian atau seluruhnya ke dalam zat cair akan mengalami gaya ke atas yang besarnya sama dengan berat zat cair yang dipindahkan."</p>
+            
+            <div class="formula">
+                F<sub>a</sub> = $\rho_f$ &times; V<sub>tercelup</sub> &times; g
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
+                <div style="background: rgba(255,75,75,0.1); padding: 15px; border-radius: 10px; border: 1px solid var(--danger);">
+                    <h3 style="color: var(--danger);">Tenggelam</h3>
+                    <p style="font-size: 0.9rem;">$\rho_b > \rho_f$<br>Berat > Gaya Apung</p>
+                </div>
+                <div style="background: rgba(255,234,0,0.1); padding: 15px; border-radius: 10px; border: 1px solid var(--warning);">
+                    <h3 style="color: var(--warning);">Melayang</h3>
+                    <p style="font-size: 0.9rem;">$\rho_b = \rho_f$<br>Berat = Gaya Apung</p>
+                </div>
+                <div style="background: rgba(0,230,118,0.1); padding: 15px; border-radius: 10px; border: 1px solid var(--success);">
+                    <h3 style="color: var(--success);">Mengapung</h3>
+                    <p style="font-size: 0.9rem;">$\rho_b < \rho_f$<br>Berat < Gaya Apung</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Generate Bubbles
+        const bubblesContainer = document.getElementById('bubbles');
+        for(let i=0; i<20; i++) {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            const size = Math.random() * 40 + 10;
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${Math.random() * 100}vw`;
+            bubble.style.animationDuration = `${Math.random() * 5 + 5}s`;
+            bubble.style.animationDelay = `${Math.random() * 5}s`;
+            bubblesContainer.appendChild(bubble);
+        }
+
+        // Physics Engine
+        const rhoBSlider = document.getElementById('rhoB');
+        const rhoFSlider = document.getElementById('rhoF');
+        const rhoBVal = document.getElementById('rhoB-val');
+        const rhoFVal = document.getElementById('rhoF-val');
+        const weightVal = document.getElementById('weight-val');
+        const buoyancyVal = document.getElementById('buoyancy-val');
+        const object = document.getElementById('object');
+        const statusBadge = document.getElementById('statusBadge');
+
+        const V = 1; // Volume benda 1 m^3 (fixed for simplicity)
+        const g = 9.8; // Gravitasi
+        const tankHeight = 400;
+        const waterLevelFromTop = 50;
+        const waterHeight = tankHeight - waterLevelFromTop;
+        const objHeight = 80;
+
+        function updateSimulation() {
+            const rhoB = parseInt(rhoBSlider.value);
+            const rhoF = parseInt(rhoFSlider.value);
+
+            // Update Labels
+            rhoBVal.innerText = `${rhoB} kg/m³`;
+            rhoFVal.innerText = `${rhoF} kg/m³`;
+
+            // Calculations
+            const W = rhoB * V * g; // Berat benda
+            let Fa, bottomPos, status, statusClass;
+
+            if (rhoB > rhoF) {
+                // Tenggelam
+                status = 'TENGGELAM';
+                statusClass = 'status-tenggelam';
+                Fa = rhoF * V * g; // Volume tercelup = V
+                bottomPos = 20; // Dasar tank
+            } else if (rhoB === rhoF) {
+                // Melayang
+                status = 'MELAYANG';
+                statusClass = 'status-melayang';
+                Fa = W; // Volume tercelup = V
+                bottomPos = (waterHeight / 2) - (objHeight / 2) + 20; // Tengah air
+            } else {
+                // Mengapung
+                status = 'MENGAPUNG';
+                statusClass = 'status-mengapung';
+                Fa = W; // Gaya apung = Berat
+                // Hitung seberapa banyak tercelup
+                const submergedRatio = rhoB / rhoF;
+                const submergedHeight = objHeight * submergedRatio;
+                // Posisi bottom = waterLevel - submergedHeight + 20 (offset dasar)
+                // waterLevel dari bottom = waterHeight + 20
+                bottomPos = waterHeight + 20 - submergedHeight; 
+            }
+
+            // Update UI Stats
+            weightVal.innerText = `${W.toFixed(0)} N`;
+            buoyancyVal.innerText = `${Fa.toFixed(0)} N`;
+
+            // Update Object Position & Status
+            object.style.bottom = `${bottomPos}px`;
+            statusBadge.innerText = status;
+            statusBadge.className = `status-badge ${statusClass}`;
+        }
+
+        // Event Listeners
+        rhoBSlider.addEventListener('input', updateSimulation);
+        rhoFSlider.addEventListener('input', updateSimulation);
+
+        // Init
+        updateSimulation();
+    </script>
+</body>
+  </html>
